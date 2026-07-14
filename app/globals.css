@@ -1,26 +1,144 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FFFFFF;
+  --foreground: #000000;
+  --card: #FFFFFF;
+  --card-foreground: #000000;
+  --primary: #C8A24C;
+  --primary-foreground: #000000;
+  --secondary: #F5F5F5;
+  --secondary-foreground: #000000;
+  --muted: #F5F5F5;
+  --muted-foreground: #666666;
+  --border: #E5E5E5;
+  --radius: 0.625rem;
+  --gold-light: #DAB866;
+  --gold-main: #C8A24C;
+  --gold-dark: #B08A3A;
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --card: #000000;
+  --card-foreground: #FFFFFF;
+  --primary: #C8A24C;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1A1A1A;
+  --secondary-foreground: #FFFFFF;
+  --muted: #1A1A1A;
+  --muted-foreground: #999999;
+  --border: #333333;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * { 
+    @apply border-border; 
+    /* Fix: Use a standard CSS property instead of the broken utility */
+    outline-color: rgba(200, 162, 76, 0.5); 
+  }
+  body { @apply bg-background text-foreground font-serif; }
+}
+
+@layer utilities {
+  .bg-gold-gradient {
+    background: linear-gradient(to right, #DAB866, #C8A24C, #B08A3A);
+  }
+  .text-gold-gradient {
+    background: linear-gradient(to right, #DAB866, #C8A24C, #B08A3A);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .shadow-gold {
+    box-shadow: 0 4px 20px rgba(200, 162, 76, 0.3);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-up { animation: fadeUp 0.6s ease both; }
+.animate-fade-in { animation: fadeIn 0.5s ease both; }
+.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-slide-left { animation: slideLeft 0.6s ease both; }
+.animate-slide-right { animation: slideRight 0.6s ease both; }
+.animate-scale-in { animation: scaleIn 0.5s ease both; }
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+
+/* Reveal on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Container */
+.container-custom {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Remove number input arrows for phone input */
+input[type="tel"]::-webkit-outer-spin-button,
+input[type="tel"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="tel"] {
+  -moz-appearance: textfield;
+}
+@media (min-width: 640px) { .container-custom { padding: 0 1.5rem; } }
+@media (min-width: 1024px) { .container-custom { padding: 0 2rem; } }
