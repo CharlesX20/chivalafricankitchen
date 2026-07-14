@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { RestaurantClosedBanner } from "@/components/RestaurantClosedBanner";
+import { ComingSoon } from "@/components/ComingSoon";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
@@ -20,11 +21,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <RestaurantClosedBanner>
-            <Navbar />
-            {children}
-            <Footer />
-          </RestaurantClosedBanner>
+          <ComingSoon>
+            <RestaurantClosedBanner>
+              <Navbar />
+              {children}
+              <Footer />
+            </RestaurantClosedBanner>
+          </ComingSoon>
           <Toaster position="top-center" richColors />
         </ThemeProvider>
       </body>

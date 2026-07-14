@@ -36,14 +36,19 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    console.log(`Processing order ${orderId} with payment ${session.id}`)
+
     const adminClient = createAdminClient()
-    const { error } = await adminClient
+    
+    // Update order with payment info and status
+    const { data, error } = await adminClient
       .from('orders')
       .update({
         stripe_payment_id: session.id,
         status: 'confirmed',
       })
       .eq('id', orderId)
+      .select()
 
     if (error) {
       console.error('Error updating order:', error)
@@ -54,6 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`Order ${orderId} confirmed with payment ${session.id}`)
+    console.log('Updated order:', data)
   }
 
   return NextResponse.json({ received: true })

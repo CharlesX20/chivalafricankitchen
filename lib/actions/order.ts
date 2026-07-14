@@ -3,16 +3,21 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { CreateOrderInput, Order } from '@/lib/types/order'
-import { isUserAdmin, getCurrentUser } from '@/lib/actions/auth'  // <- Use OUR custom auth
+import { isUserAdmin, getCurrentUser } from '@/lib/actions/auth'
 import { generateOrderNumber } from '@/lib/utils'
 import { revalidatePath } from 'next/cache'
 
 // ============================================
-// Get user's orders - uses custom auth
+// Get user's orders - FIXED: uses custom auth
 // ============================================
 export async function getUserOrders(): Promise<Order[]> {
-  const user = await getCurrentUser()  // <- Our custom auth
-  if (!user) return []
+  const user = await getCurrentUser()
+  if (!user) {
+    console.log('No user found in getUserOrders')
+    return []
+  }
+
+  console.log('Getting orders for user:', user.id, user.email)
 
   const supabase = await createClient()
   const { data, error } = await supabase
@@ -26,14 +31,15 @@ export async function getUserOrders(): Promise<Order[]> {
     return []
   }
 
+  console.log('Orders found:', data?.length || 0)
   return data || []
 }
 
 // ============================================
-// Get single order by ID - uses custom auth
+// Get single order by ID - FIXED: uses custom auth
 // ============================================
 export async function getOrderById(orderId: string): Promise<Order | null> {
-  const user = await getCurrentUser()  // <- Our custom auth
+  const user = await getCurrentUser()
   if (!user) return null
 
   const supabase = await createClient()
@@ -53,7 +59,7 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 }
 
 // ============================================
-// Get order by Stripe session ID
+// Get order by Stripe session ID - FIXED: uses custom auth
 // ============================================
 export async function getOrderByStripeSessionId(sessionId: string): Promise<Order | null> {
   try {
@@ -62,7 +68,7 @@ export async function getOrderByStripeSessionId(sessionId: string): Promise<Orde
       .from('orders')
       .select('*')
       .eq('stripe_payment_id', sessionId)
-      .maybeSingle()  // Use maybeSingle() instead of single()
+      .maybeSingle()
 
     if (error) {
       console.error('Error fetching order by stripe session:', error)
@@ -127,10 +133,9 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
 }
 
 // ============================================
-// Create order with Stripe checkout - FIXED
+// Create order with Stripe checkout
 // ============================================
 export async function createOrderWithCheckout(input: CreateOrderInput) {
-  // Use OUR custom auth, NOT supabase.auth
   const user = await getCurrentUser()
   
   if (!user) {
@@ -148,11 +153,13 @@ export async function createOrderWithCheckout(input: CreateOrderInput) {
   const adminClient = createAdminClient()
   const orderNumber = generateOrderNumber()
 
+  console.log('Creating order for user:', user.id, user.email)
+
   // Create order in database
   const { data: order, error: orderError } = await adminClient
     .from('orders')
     .insert({
-      user_id: user.id,  // user.id from OUR custom auth
+      user_id: user.id,
       order_number: orderNumber,
       customer_name: input.customer_name,
       customer_email: input.customer_email,
@@ -170,6 +177,8 @@ export async function createOrderWithCheckout(input: CreateOrderInput) {
     console.error('Error creating order:', orderError)
     return { error: 'Failed to create order' }
   }
+
+  console.log('Order created:', order.id, order.order_number)
 
   // Create Stripe checkout session
   const { createCheckoutSession } = await import('@/lib/stripe')
