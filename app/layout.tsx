@@ -88,11 +88,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <RestaurantClosedBanner>
             <Navbar />
             {children}
             <Footer />
-          </RestaurantClosedBanner>
           <Toaster position="top-center" richColors />
         </ThemeProvider>
       </body>
