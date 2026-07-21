@@ -39,13 +39,13 @@ export async function createCheckoutSession({
     line_items: lineItems,
     mode: 'payment',
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/order/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart`,
+    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart?canceled=true`,
     customer_email: customerEmail,
     metadata: {
-      orderId: orderId,  // Important: Include orderId in metadata
-      customerName,
-      customerPhone,
-      customerEmail,
+      orderId: orderId,
+      customerName: customerName,
+      customerPhone: customerPhone,
+      customerEmail: customerEmail,
     },
   })
 

@@ -50,7 +50,7 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="https://instagram.com/chivalrestaurant"
+                href="https://www.threads.com/@africannigerianresturant"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 bg-background hover:bg-gold-gradient rounded-xl transition-all duration-300 border border-border hover:border-transparent group"
@@ -78,7 +78,7 @@ export function Footer() {
                 { href: "/menu", text: "Menu" },
                 { href: "/orders", text: "My Orders" },
                 { href: "#about", text: "About Us" },
-                { href: "#contact", text: "Contact" }
+                { href: "tel:16477040171", text: "Contact" }
               ].map((link) => (
                 <li key={link.href}>
                   <Link 

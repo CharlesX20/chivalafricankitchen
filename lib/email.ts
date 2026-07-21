@@ -2,7 +2,7 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
-const FROM_EMAIL = 'auth.chivalafricannigerianrestaurant@pocketreply.tech'
+const FROM_EMAIL = 'auth.chivalafricankitchenandbar@pocketreply.tech'
 
 export async function sendVerificationCode(email: string, code: string) {
   try {
@@ -28,7 +28,7 @@ export async function sendVerificationCode(email: string, code: string) {
                           CHIVAL
                         </div>
                         <div style="font-size: 14px; color: #888; margin-top: 4px;">
-                          African Nigerian Restaurant
+                          African Kitchen and Bar
                         </div>
                       </td>
                     </tr>
@@ -70,7 +70,7 @@ export async function sendVerificationCode(email: string, code: string) {
                     <tr>
                       <td style="border-top: 1px solid #e5e5e5; padding-top: 24px; text-align: center;">
                         <p style="font-size: 12px; color: #bbb; margin: 0;">
-                          CHIVAL • 53 Dunlop St E, Barrie, ON L4M 1A2
+                          CHIVAL African Kitchen and Bar • 53 Dunlop St E, Barrie, ON L4M 1A2
                         </p>
                       </td>
                     </tr>
@@ -116,15 +116,8 @@ export async function sendWelcomeEmail(email: string, name?: string) {
                     <tr>
                       <td align="center" style="padding-bottom: 24px;">
                         <div style="font-size: 32px; font-weight: 700; color: #C8A24C;">
-                          CHIVAL
+                          CHIVAL African Kitchen and Bar
                         </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding-bottom: 16px;">
-                        <h1 style="font-size: 24px; font-weight: 600; color: #1a1a1a; margin: 0; text-align: center;">
-                          Welcome to CHIVAL! 🎉
-                        </h1>
                       </td>
                     </tr>
                     <tr>
@@ -132,7 +125,7 @@ export async function sendWelcomeEmail(email: string, name?: string) {
                         <p style="font-size: 16px; color: #4a4a4a; line-height: 1.8; margin: 0;">
                           ${name ? `Hi ${name},` : 'Hi there!'}
                           <br /><br />
-                          Welcome to CHIVAL! You're now part of our community.
+                          Welcome to CHIVAL African Kitchen and Bar! You're now part of our community.
                           <br /><br />
                           We serve authentic Nigerian cuisine in the heart of Barrie.
                           Explore our menu and place your first order today!
@@ -141,7 +134,7 @@ export async function sendWelcomeEmail(email: string, name?: string) {
                     </tr>
                     <tr>
                       <td align="center" style="padding: 16px 0 24px;">
-                        <a href="${process.env.NEXT_PUBLIC_APP_URL}/menu" style="display: inline-block; background: linear-gradient(to right, #DAB866, #C8A24C, #B08A3A); color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 16px;">
+                        <a href="${process.env.NEXT_PUBLIC_APP_URL}/menu" style="display: inline-block; background-color: #C8A24C; color: #ffffff; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 16px; border: 1px solid #B08A3A;">
                           Browse Our Menu
                         </a>
                       </td>

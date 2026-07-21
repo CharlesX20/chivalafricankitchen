@@ -21,7 +21,7 @@ export function Navbar() {
 
   // Check if we're on the homepage (where hero image exists)
   const isHomePage = pathname === '/'
-  
+
   // Check if we're on admin pages
   const isAdminPage = pathname?.startsWith('/admin')
 
@@ -31,7 +31,7 @@ export function Navbar() {
   useEffect(() => {
     // Don't run effects on admin pages
     if (isAdminPage) return
-    
+
     loadUser()
     updateCartCount()
     const handleScroll = () => setScrolled(window.scrollY > 50)
@@ -97,26 +97,51 @@ export function Navbar() {
   return (
     <>
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isTransparent
-          ? 'bg-transparent'
-          : 'bg-background/95 backdrop-blur-md shadow-lg border-b border-border'
+        ? 'bg-transparent'
+        : 'bg-background/95 backdrop-blur-md shadow-lg border-b border-border'
         }`}>
         <div className="container-custom">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 md:gap-3">
-              <img src="/icon.png" alt="CHIVAL" className="w-8 h-8 md:w-10 md:h-10" />
-              <span className={`text-xl md:text-2xl font-bold ${isTransparent ? 'text-white drop-shadow-lg' : 'text-gold-gradient'
-                }`}>CHIVAL</span>
+            <Link href="/" className="flex items-center gap-2 md:gap-3 group select-none">
+              {/* Logo Icon Container - Scales from 36px on mobile to 44px on desktop */}
+              <div className="relative w-9 h-9 md:w-11 md:h-11 shrink-0">
+                <img
+                  src="/icon.png"
+                  alt="CHIVAL"
+                  className="w-full h-full object-contain filter drop-shadow-md transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+
+              {/* Stacked Text Brand Container */}
+              <div className="flex flex-col justify-center leading-none">
+                {/* Headline: CHIVAL */}
+                <span className={`text-lg md:text-xl font-black tracking-wider uppercase transition-colors duration-300 ${isTransparent
+                    ? 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]'
+                    : 'text-gold-gradient'
+                  }`}>
+                  CHIVAL
+                </span>
+
+                {/* Subheadline: African Kitchen & Bar */}
+                <span className={`text-[9px] md:text-[10px] font-bold tracking-[0.12em] uppercase whitespace-nowrap mt-0.5 transition-colors duration-300 ${isTransparent
+                    ? 'text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]'
+                    : 'text-muted-foreground/90 dark:text-amber-500/80'
+                  }`}>
+                  African Kitchen & Bar
+                </span>
+              </div>
             </Link>
+
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6 lg:gap-8">
               {links.map((link) => (
                 <Link key={link.href} href={link.href} className={`text-sm font-medium transition-colors relative py-1 group ${pathname === link.href
-                    ? 'text-primary'
-                    : isTransparent
-                      ? 'text-white/90 hover:text-white'
-                      : 'text-foreground hover:text-primary'
+                  ? 'text-primary'
+                  : isTransparent
+                    ? 'text-white/90 hover:text-white'
+                    : 'text-foreground hover:text-primary'
                   }`}>
                   {link.label}
                   <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all duration-300 ${pathname === link.href ? 'w-full' : 'w-0 group-hover:w-full'
@@ -160,8 +185,8 @@ export function Navbar() {
                 </div>
               ) : (
                 <button onClick={() => setIsAuthOpen(true)} className={`hidden sm:block px-4 py-2 rounded-full text-sm font-medium transition-all ${isTransparent
-                    ? 'bg-white/10 backdrop-blur-sm text-white border border-white/20 hover:bg-white/20'
-                    : 'bg-gold-gradient text-white hover:shadow-gold'
+                  ? 'bg-white/10 backdrop-blur-sm text-white border border-white/20 hover:bg-white/20'
+                  : 'bg-gold-gradient text-white hover:shadow-gold'
                   }`}>Sign In</button>
               )}
 
@@ -216,8 +241,8 @@ export function Navbar() {
                   href={link.href}
                   onClick={closeMenu}
                   className={`flex items-center px-4 py-3.5 rounded-xl text-base font-medium transition-all ${pathname === link.href
-                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                      : 'text-foreground hover:bg-secondary'
+                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                    : 'text-foreground hover:bg-secondary'
                     }`}
                 >
                   {/* Icon based on link */}

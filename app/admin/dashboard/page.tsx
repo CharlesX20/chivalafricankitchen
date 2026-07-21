@@ -87,7 +87,7 @@ export default function AdminDashboardPage() {
 
   const stats = [
     { label: 'Total Orders', value: orders.length, icon: Package, color: 'text-blue-500' },
-    { label: 'Pending', value: pendingOrders.length, icon: Clock, color: 'text-yellow-500' },
+    { label: 'Not Ready', value: pendingOrders.length, icon: Clock, color: 'text-yellow-500' },
     { label: 'Preparing', value: preparingOrders.length, icon: Clock, color: 'text-purple-500' },
     { label: 'Ready for Pickup', value: readyOrders.length, icon: CheckCircle, color: 'text-green-500' },
     { label: 'Menu Items', value: menuItems.length, icon: UtensilsCrossed, color: 'text-primary' },

@@ -70,7 +70,8 @@ export default function AdminSettingsPage() {
       </div>
 
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
-        <div className="grid grid-cols-12 gap-2 p-4 bg-secondary font-medium text-sm text-muted-foreground border-b border-border">
+        {/* Table Header - Only visible on desktop */}
+        <div className="hidden md:grid grid-cols-12 gap-2 p-4 bg-secondary font-medium text-sm text-muted-foreground border-b border-border">
           <div className="col-span-3">Day</div>
           <div className="col-span-3">Open Time</div>
           <div className="col-span-3">Close Time</div>
@@ -78,50 +79,65 @@ export default function AdminSettingsPage() {
           <div className="col-span-1"></div>
         </div>
 
+        {/* Row Container */}
         {settings.map((setting) => (
-          <div key={setting.id} className="grid grid-cols-12 gap-2 p-4 items-center border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
-            <div className="col-span-3 font-medium">
+          <div 
+            key={setting.id} 
+            className="flex flex-col gap-4 p-4 border-b border-border last:border-0 hover:bg-secondary/50 transition-colors md:grid md:grid-cols-12 md:gap-2 md:items-center"
+          >
+            {/* Day Title */}
+            <div className="font-semibold text-base md:font-medium md:text-sm md:col-span-3">
               {dayLabels[setting.day_of_week as keyof typeof dayLabels]}
             </div>
             
-            <div className="col-span-3">
-              <input
-                type="time"
-                value={setting.open_time}
-                onChange={(e) => handleUpdate(setting.day_of_week, 'open_time', e.target.value)}
-                disabled={setting.is_closed}
-                className={`px-3 py-1.5 border border-border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary w-full ${
-                  setting.is_closed ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              />
+            {/* Time Fields & Status Wrapper */}
+            <div className="flex flex-col gap-3 md:contents">
+              {/* Open Time */}
+              <div className="flex items-center justify-between gap-4 md:block md:col-span-3">
+                <span className="text-sm text-muted-foreground font-medium md:hidden min-w-[80px]">Open Time</span>
+                <input
+                  type="time"
+                  value={setting.open_time}
+                  onChange={(e) => handleUpdate(setting.day_of_week, 'open_time', e.target.value)}
+                  disabled={setting.is_closed}
+                  className={`px-3 py-1.5 border border-border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary w-full max-w-[200px] md:max-w-none ${
+                    setting.is_closed ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                />
+              </div>
+              
+              {/* Close Time */}
+              <div className="flex items-center justify-between gap-4 md:block md:col-span-3">
+                <span className="text-sm text-muted-foreground font-medium md:hidden min-w-[80px]">Close Time</span>
+                <input
+                  type="time"
+                  value={setting.close_time}
+                  onChange={(e) => handleUpdate(setting.day_of_week, 'close_time', e.target.value)}
+                  disabled={setting.is_closed}
+                  className={`px-3 py-1.5 border border-border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary w-full max-w-[200px] md:max-w-none ${
+                    setting.is_closed ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                />
+              </div>
+              
+              {/* Status Button */}
+              <div className="flex items-center justify-between gap-4 md:block md:col-span-2 pt-2 border-t border-border/50 md:pt-0 md:border-t-0">
+                <span className="text-sm text-muted-foreground font-medium md:hidden min-w-[80px]">Status</span>
+                <button
+                  onClick={() => handleUpdate(setting.day_of_week, 'is_closed', !setting.is_closed)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all max-w-[200px] w-full md:w-auto ${
+                    setting.is_closed
+                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                  }`}
+                >
+                  {setting.is_closed ? 'Closed' : 'Open'}
+                </button>
+              </div>
             </div>
             
-            <div className="col-span-3">
-              <input
-                type="time"
-                value={setting.close_time}
-                onChange={(e) => handleUpdate(setting.day_of_week, 'close_time', e.target.value)}
-                disabled={setting.is_closed}
-                className={`px-3 py-1.5 border border-border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary w-full ${
-                  setting.is_closed ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              />
-            </div>
-            
-            <div className="col-span-2">
-              <button
-                onClick={() => handleUpdate(setting.day_of_week, 'is_closed', !setting.is_closed)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  setting.is_closed
-                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                    : 'bg-green-100 text-green-700 hover:bg-green-200'
-                }`}
-              >
-                {setting.is_closed ? 'Closed' : 'Open'}
-              </button>
-            </div>
-            
-            <div className="col-span-1 flex justify-end">
+            {/* Loading Indicator Icon */}
+            <div className="flex justify-end items-center md:col-span-1 pt-1 md:pt-0">
               {saving === setting.day_of_week ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
               ) : (

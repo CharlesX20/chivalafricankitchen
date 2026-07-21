@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Navbar } from '@/components/Navbar'
-import { Footer } from '@/components/Footer'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { formatPrice } from '@/lib/utils'
 import { createOrderWithCheckout } from '@/lib/actions/order'
 import { getCurrentUser } from '@/lib/actions/auth'
@@ -11,6 +9,7 @@ import { Minus, Plus, X, ShoppingBag, ArrowLeft, Clock, Truck, AlertCircle } fro
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { isRestaurantOpen } from '@/lib/actions/settings'
+import { AuthModal } from '@/components/auth/AuthModal'
 
 interface CartItem {
   id: string
@@ -26,6 +25,8 @@ export default function CartPage() {
   const [user, setUser] = useState<any>(null)
   const [pickupTime, setPickupTime] = useState<string>('')
   const [minTime, setMinTime] = useState<string>('')
+  const [isAuthOpen, setIsAuthOpen] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
@@ -33,6 +34,29 @@ export default function CartPage() {
     checkUser()
     setMinPickupTime()
   }, [])
+
+  const searchParams = useSearchParams()
+  const canceled = searchParams.get('canceled')
+
+  useEffect(() => {
+    if (canceled === 'true') {
+      const pendingOrderId = localStorage.getItem('pending_order_id')
+      if (pendingOrderId) {
+        fetch('/api/cancel-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: pendingOrderId }),
+        })
+          .then(() => {
+            localStorage.removeItem('pending_order_id')
+            toast.info('Your order has been cancelled')
+          })
+          .catch(() => {
+            toast.error('Failed to cancel order')
+          })
+      }
+    }
+  }, [canceled])
 
   function loadCart() {
     try {
@@ -46,6 +70,7 @@ export default function CartPage() {
   async function checkUser() {
     const u = await getCurrentUser()
     setUser(u)
+    setIsCheckingAuth(false)
   }
 
   function setMinPickupTime() {
@@ -58,7 +83,7 @@ export default function CartPage() {
     const minutes = String(now.getMinutes()).padStart(2, '0')
     const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`
     setMinTime(minDateTime)
-    
+
     // Set default pickup time to 30 minutes from now
     setPickupTime(minDateTime)
   }
@@ -89,7 +114,7 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     if (!user) {
-      toast.error('Please sign in to place an order')
+      setIsAuthOpen(true)
       return
     }
 
@@ -98,15 +123,15 @@ export default function CartPage() {
       return
     }
 
-      // CHECK IF RESTAURANT IS OPEN
-  const { open, nextOpenTime } = await isRestaurantOpen()
-  if (!open) {
-    const openTime = nextOpenTime 
-      ? new Date(nextOpenTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-      : 'opening time'
-    toast.error(`We are currently closed. We'll reopen at ${openTime}.`)
-    return
-  }
+    // CHECK IF RESTAURANT IS OPEN
+    const { open, nextOpenTime } = await isRestaurantOpen()
+    if (!open) {
+      const openTime = nextOpenTime
+        ? new Date(nextOpenTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Toronto' })
+        : 'opening time'
+      toast.error(`We are currently closed. We'll reopen at ${openTime}.`)
+      return
+    }
 
     if (!pickupTime) {
       toast.error('Please select a pickup time')
@@ -121,6 +146,10 @@ export default function CartPage() {
       toast.error('Pickup time must be at least 30 minutes from now')
       return
     }
+
+    // IMPORTANT: Convert to UTC ISO string for storage
+    // This preserves the exact time the user selected
+    const pickupTimeUTC = selectedTime.toISOString()
 
     setLoading(true)
 
@@ -138,7 +167,7 @@ export default function CartPage() {
         })),
         subtotal: subtotal,
         total: total,
-        pickup_time: pickupTime,
+        pickup_time: pickupTimeUTC, // Use UTC ISO string
       })
 
       if (result.error) {
@@ -148,12 +177,25 @@ export default function CartPage() {
       }
 
       if (result.url) {
+        // Store order ID to cancel if user goes back
+        if (result.order && result.order.id) {
+          localStorage.setItem('pending_order_id', result.order.id)
+        }
         window.location.href = result.url
       }
     } catch (error) {
       toast.error('Something went wrong. Please try again.')
       setLoading(false)
     }
+  }
+
+  // Loading state while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen pt-20 flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    )
   }
 
   if (cart.length === 0) {
@@ -175,20 +217,19 @@ export default function CartPage() {
 
   return (
     <>
-      <main className="pt-16 md:pt-20 min-h-screen bg-background">
+      <main className="pt-16 md:pt-20 min-h-screen mb-12 bg-background">
         <div className="container-custom py-8 sm:py-12">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 mt-12">
               <Link href="/menu" className="text-muted-foreground hover:text-primary transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <h1 className="text-2xl sm:text-3xl font-bold">Your Cart</h1>
-              <span className="text-sm text-muted-foreground">({cart.length} items)</span>
             </div>
-            
+
             {/* Uber Eats Delivery Option */}
             <a
-              href="https://www.ubereats.com/barrie/food-delivery/african-nigerian-restaurant"
+              href="https://www.ubereats.com/ca/store/african-nigerian-restaurant/q_j7H7trQsidF5Jrk7Ictg?diningMode=DELIVERY&ps=1"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors bg-secondary px-4 py-2 rounded-full"
@@ -308,6 +349,16 @@ export default function CartPage() {
           </div>
         </div>
       </main>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onAuthSuccess={async () => {
+          const u = await getCurrentUser()
+          setUser(u)
+        }}
+      />
     </>
   )
 }

@@ -8,7 +8,7 @@ import { generateOrderNumber } from '@/lib/utils'
 import { revalidatePath } from 'next/cache'
 
 // ============================================
-// Get user's orders - FIXED: uses custom auth
+// Get user's orders - Uses admin client to bypass RLS
 // ============================================
 export async function getUserOrders(): Promise<Order[]> {
   const user = await getCurrentUser()
@@ -19,8 +19,9 @@ export async function getUserOrders(): Promise<Order[]> {
 
   console.log('Getting orders for user:', user.id, user.email)
 
-  const supabase = await createClient()
-  const { data, error } = await supabase
+  // Use admin client to bypass RLS and get all orders for this user
+  const adminClient = createAdminClient()
+  const { data, error } = await adminClient
     .from('orders')
     .select('*')
     .eq('user_id', user.id)
@@ -36,14 +37,14 @@ export async function getUserOrders(): Promise<Order[]> {
 }
 
 // ============================================
-// Get single order by ID - FIXED: uses custom auth
+// Get single order by ID - Uses admin client
 // ============================================
 export async function getOrderById(orderId: string): Promise<Order | null> {
   const user = await getCurrentUser()
   if (!user) return null
 
-  const supabase = await createClient()
-  const { data, error } = await supabase
+  const adminClient = createAdminClient()
+  const { data, error } = await adminClient
     .from('orders')
     .select('*')
     .eq('id', orderId)
@@ -59,12 +60,12 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 }
 
 // ============================================
-// Get order by Stripe session ID - FIXED: uses custom auth
+// Get order by Stripe session ID - Uses admin client
 // ============================================
 export async function getOrderByStripeSessionId(sessionId: string): Promise<Order | null> {
   try {
-    const supabase = await createClient()
-    const { data, error } = await supabase
+    const adminClient = createAdminClient()
+    const { data, error } = await adminClient
       .from('orders')
       .select('*')
       .eq('stripe_payment_id', sessionId)
@@ -154,8 +155,9 @@ export async function createOrderWithCheckout(input: CreateOrderInput) {
   const orderNumber = generateOrderNumber()
 
   console.log('Creating order for user:', user.id, user.email)
+  console.log('Customer phone:', input.customer_phone)
 
-  // Create order in database
+  // Create order in database using admin client
   const { data: order, error: orderError } = await adminClient
     .from('orders')
     .insert({
@@ -163,7 +165,7 @@ export async function createOrderWithCheckout(input: CreateOrderInput) {
       order_number: orderNumber,
       customer_name: input.customer_name,
       customer_email: input.customer_email,
-      customer_phone: input.customer_phone,
+      customer_phone: input.customer_phone || '',
       items: input.items,
       subtotal: input.subtotal,
       total: input.total,
@@ -179,6 +181,7 @@ export async function createOrderWithCheckout(input: CreateOrderInput) {
   }
 
   console.log('Order created:', order.id, order.order_number)
+  console.log('Order phone saved:', order.customer_phone)
 
   // Create Stripe checkout session
   const { createCheckoutSession } = await import('@/lib/stripe')
@@ -192,7 +195,7 @@ export async function createOrderWithCheckout(input: CreateOrderInput) {
     })),
     customerEmail: input.customer_email,
     customerName: input.customer_name,
-    customerPhone: input.customer_phone,
+    customerPhone: input.customer_phone || '',
     orderId: order.id,
   })
 

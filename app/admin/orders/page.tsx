@@ -5,7 +5,7 @@ import { getAllOrders, updateOrderStatus } from '@/lib/actions/order'
 import { Order } from '@/lib/types/order'
 import { formatPrice } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
-import { Clock, Package, CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { Clock, Package, CheckCircle, XCircle, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 
 const statuses = ['pending', 'confirmed', 'preparing', 'ready', 'cancelled'] as const
@@ -24,21 +24,52 @@ const statusLabels = {
   cancelled: 'Cancelled',
 }
 
+// Helper function to format pickup time
+function formatPickupTime(pickupTime: string): string {
+  if (!pickupTime) return 'Not set'
+  
+  try {
+    const date = new Date(pickupTime)
+    if (isNaN(date.getTime())) {
+      return pickupTime
+    }
+    
+    return date.toLocaleString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'America/Toronto'
+    })
+  } catch (e) {
+    return pickupTime
+  }
+}
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
   const [updating, setUpdating] = useState<string | null>(null)
+  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date())
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const supabase = createClient()
   const channelRef = useRef<any>(null)
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Load orders and setup realtime + auto-refresh
   useEffect(() => {
     loadOrders()
     setupRealtime()
+    setupAutoRefresh()
 
     return () => {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current)
+      }
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current)
       }
     }
   }, [])
@@ -47,15 +78,38 @@ export default function AdminOrdersPage() {
     const data = await getAllOrders()
     setOrders(data)
     setLoading(false)
+    setLastRefreshed(new Date())
+  }
+
+  // Auto-refresh every 10 seconds
+  function setupAutoRefresh() {
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current)
+    }
+    
+    refreshIntervalRef.current = setInterval(() => {
+      // Only refresh if not currently updating
+      if (!updating) {
+        console.log('Auto-refreshing orders...')
+        loadOrders()
+      }
+    }, 10000) // 10 seconds
+  }
+
+  // Manual refresh
+  const handleManualRefresh = async () => {
+    if (isRefreshing) return
+    setIsRefreshing(true)
+    await loadOrders()
+    setIsRefreshing(false)
+    toast.info('Orders refreshed')
   }
 
   function setupRealtime() {
-    // Remove existing channel if any
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current)
     }
 
-    // Create new channel
     const channel = supabase
       .channel('admin-orders-realtime')
       .on(
@@ -66,12 +120,11 @@ export default function AdminOrdersPage() {
           table: 'orders',
         },
         () => {
+          console.log('Realtime update received')
           loadOrders()
         }
       )
-      .subscribe((status) => {
-        console.log('Realtime subscription status:', status)
-      })
+      .subscribe()
 
     channelRef.current = channel
   }
@@ -102,7 +155,24 @@ export default function AdminOrdersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Orders</h1>
+      {/* Header with Refresh Button */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+        <h1 className="text-2xl font-bold">Orders</h1>
+        
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>
+            Last updated: {lastRefreshed.toLocaleTimeString()}
+          </span>
+          <button
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="p-2 rounded-lg hover:bg-secondary transition-colors disabled:opacity-50"
+            aria-label="Refresh orders"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+      </div>
 
       <div className="space-y-3 sm:space-y-4">
         {orders.map((order) => (
@@ -123,7 +193,7 @@ export default function AdminOrdersPage() {
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-1 truncate">
-                  {order.customer_name} • {order.customer_phone}
+                  {order.customer_name} • {order.customer_phone || 'No phone'}
                 </p>
               </div>
               <div className="flex items-center gap-3 flex-shrink-0 self-end sm:self-center">
@@ -148,7 +218,9 @@ export default function AdminOrdersPage() {
                     <span className="text-muted-foreground">Email:</span>
                     <span className="font-medium truncate">{order.customer_email}</span>
                     <span className="text-muted-foreground">Phone:</span>
-                    <span className="font-medium">{order.customer_phone}</span>
+                    <span className="font-medium">{order.customer_phone || 'Not provided'}</span>
+                    <span className="text-muted-foreground">Pickup Time:</span>
+                    <span className="font-medium">{formatPickupTime(order.pickup_time)}</span>
                   </div>
                 </div>
 

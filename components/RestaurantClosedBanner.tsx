@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { isRestaurantOpen } from '@/lib/actions/settings'
+import Script from 'next/script'
 
 interface ClosedBannerProps {
   children: React.ReactNode
@@ -15,6 +16,7 @@ export function RestaurantClosedBanner({ children }: ClosedBannerProps) {
   const [countdown, setCountdown] = useState<string>('')
   const [loading, setLoading] = useState(true)
 
+  const isHomePage = pathname === '/'
   const isAdminPage = pathname?.startsWith('/admin')
 
   useEffect(() => {
@@ -51,11 +53,11 @@ export function RestaurantClosedBanner({ children }: ClosedBannerProps) {
     const now = new Date()
     const target = new Date(nextOpenTime)
     const diff = Math.max(0, target.getTime() - now.getTime())
-    
+
     const hours = Math.floor(diff / (1000 * 60 * 60))
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
     const seconds = Math.floor((diff % (1000 * 60)) / 1000)
-    
+
     if (hours > 0) {
       setCountdown(`${hours}h ${minutes}m ${seconds}s`)
     } else if (minutes > 0) {
@@ -73,7 +75,7 @@ export function RestaurantClosedBanner({ children }: ClosedBannerProps) {
   // Show closed banner for everyone when restaurant is closed
   if (isOpen === false) {
     const targetDate = nextOpenTime ? new Date(nextOpenTime) : null
-    const openTimeStr = targetDate 
+    const openTimeStr = targetDate
       ? targetDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       : ''
 
@@ -111,5 +113,16 @@ export function RestaurantClosedBanner({ children }: ClosedBannerProps) {
   }
 
   // Restaurant is open, show normally
-  return <>{children}</>
+  return <>
+    {children}
+    {/* Only load chatbot when restaurant is open */}
+    {isHomePage && (
+      <Script
+        src="https://pocketreply.tech/embed.js"
+        data-agent-id="93dfe804-f398-48e1-8062-2349963eccec"
+        data-base-url="https://pocketreply.tech"
+        strategy="lazyOnload"
+      />
+    )}
+  </>
 }

@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// Define protected routes
-const protectedRoutes = ['/admin', '/orders', '/cart']
+// Define protected routes - REMOVE '/cart' from this list
+const protectedRoutes = ['/admin', '/orders']
 const adminRoutes = ['/admin']
 const authRoutes = ['/admin/login']
 
@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route))
 
-  // If no session token and trying to access protected route
+  // If no session token and trying to access protected route (NOT including cart)
   if (!sessionToken && isProtectedRoute) {
     return NextResponse.redirect(new URL('/', request.url))
   }
@@ -68,7 +68,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next()
       }
 
-      // If user is authenticated and trying to access auth route, redirect to home
+      // If user is authenticated and trying to access auth route, redirect to admin dashboard
       if (isAuthRoute && pathname === '/admin/login') {
         return NextResponse.redirect(new URL('/admin/dashboard', request.url))
       }
@@ -95,7 +95,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin/login', request.url))
   }
 
-  // Allow all other requests
+  // Allow all other requests (including /cart)
   return NextResponse.next()
 }
 
@@ -103,6 +103,5 @@ export const config = {
   matcher: [
     '/admin/:path*',
     '/orders/:path*',
-    '/cart/:path*',
   ],
 }

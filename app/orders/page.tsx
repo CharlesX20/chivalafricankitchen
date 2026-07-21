@@ -18,6 +18,54 @@ const statusConfig = {
   cancelled: { label: 'Cancelled', icon: XCircle, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
 }
 
+// Helper function to format pickup time consistently
+// Helper function to format pickup time - display in local timezone
+function formatPickupTime(pickupTime: string): string {
+  if (!pickupTime) return ''
+  
+  try {
+    // Parse the UTC time and convert to local timezone
+    const date = new Date(pickupTime)
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return pickupTime
+    }
+    
+    // Get the local time string
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    
+    const pickupDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    
+    let dayStr = ''
+    if (pickupDate.getTime() === today.getTime()) {
+      dayStr = 'Today'
+    } else if (pickupDate.getTime() === tomorrow.getTime()) {
+      dayStr = 'Tomorrow'
+    } else {
+      dayStr = date.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric' 
+      })
+    }
+    
+    // Display in local timezone (America/Toronto)
+    const timeStr = date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      timeZone: 'America/Toronto'
+    })
+    
+    return `${dayStr} at ${timeStr}`
+  } catch (e) {
+    return pickupTime
+  }
+}
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -90,9 +138,9 @@ export default function OrdersPage() {
 
   return (
     <>
-      <main className="pt-16 md:pt-20 min-h-screen bg-background">
+      <main className="pt-16 md:pt-20 mb-20 min-h-screen bg-background">
         <div className="container-custom py-8 sm:py-12">
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-4 mb-6 mt-12">
             <Link href="/" className="text-muted-foreground hover:text-primary transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
@@ -146,13 +194,23 @@ export default function OrdersPage() {
                       ))}
                     </div>
 
-                    {/* Pickup Time */}
+                    {/* Pickup Time - Fixed Format */}
                     {order.pickup_time && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                        <MapPin className="w-4 h-4 text-primary" />
-                        <span>Pickup: {new Date(order.pickup_time).toLocaleString()}</span>
+                        <Clock className="w-4 h-4 text-primary" />
+                        <span>
+                          Pickup: <span className="font-medium text-foreground">
+                            {formatPickupTime(order.pickup_time)}
+                          </span>
+                        </span>
                       </div>
                     )}
+
+                    {/* Location */}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                      <MapPin className="w-4 h-4 text-primary" />
+                      <span>53 Dunlop St E, Barrie, ON</span>
+                    </div>
 
                     {/* Total */}
                     <div className="flex justify-between items-center pt-3 border-t border-border">

@@ -27,7 +27,7 @@ export function PhoneInput({ value, onChange, error, disabled }: PhoneInputProps
   return (
     <div className="relative">
       <div className="flex">
-        <div className="flex-shrink-0 px-3 py-2.5 border border-r-0 border-border rounded-l-xl bg-secondary text-foreground text-sm font-medium flex items-center">
+        <div className="flex-shrink-0 px-3 py-2.5 border border-r-0 border-border rounded-l-xl bg-secondary text-foreground text-base font-medium flex items-center">
           +1
         </div>
         <input
@@ -37,7 +37,7 @@ export function PhoneInput({ value, onChange, error, disabled }: PhoneInputProps
           onChange={handleChange}
           disabled={disabled}
           placeholder="123-456-7890"
-          className="flex-1 px-3 py-2.5 border border-border rounded-r-xl bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 px-3 py-2.5 border border-border rounded-r-xl bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all text-base disabled:opacity-50 disabled:cursor-not-allowed"
           maxLength={10}
           inputMode="numeric"
           pattern="[0-9]*"
